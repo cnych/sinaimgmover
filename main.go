@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -15,6 +14,9 @@ import (
 	"time"
 
 	"github.com/aliyun/aliyun-oss-go-sdk/oss"
+	"github.com/cnych/sinaimgmover/cloud"
+	"github.com/cnych/sinaimgmover/cloud/aliyun"
+	"github.com/cnych/sinaimgmover/utils"
 )
 
 var (
@@ -26,7 +28,7 @@ var (
 	ossFolder   string
 	nameLength  int
 	bucket      *oss.Bucket
-	letterRunes = []rune("1234567890abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	uploader    cloud.Uploader
 )
 
 const sinaImg = "sinaimg.cn"
@@ -42,55 +44,6 @@ func init() {
 	flag.StringVar(&ossEndpoint, "endpoint", "oss-cn-beijing.aliyuncs.com", "OSS Endpoint（不包含http(s)），如：oss-cn-hangzhou.aliyuncs.com")
 }
 
-func exit(msg string) {
-	flag.Usage()
-	fmt.Fprintln(os.Stderr, "\n[Error] "+msg)
-	os.Exit(1)
-}
-
-// RandID ... 生成指定长度的随机ID
-func RandID(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
-
-// GetAllFiles ... 获取指定目录下的所有文件,包含子目录下的文件
-func GetAllFiles(dirPth string) (files []string, err error) {
-	var dirs []string
-	dir, err := ioutil.ReadDir(dirPth)
-	if err != nil {
-		return nil, err
-	}
-
-	PthSep := string(os.PathSeparator)
-
-	for _, fi := range dir {
-		if fi.IsDir() { // 目录, 递归遍历
-			dirs = append(dirs, dirPth+PthSep+fi.Name())
-			GetAllFiles(dirPth + PthSep + fi.Name())
-		} else {
-			// 过滤指定格式
-			ok := strings.HasSuffix(fi.Name(), ".md")
-			if ok {
-				files = append(files, dirPth+PthSep+fi.Name())
-			}
-		}
-	}
-
-	// 读取子目录下文件
-	for _, table := range dirs {
-		temp, _ := GetAllFiles(table)
-		for _, temp1 := range temp {
-			files = append(files, temp1)
-		}
-	}
-
-	return files, nil
-}
-
 func initBucket() (*oss.Bucket, error) {
 	client, err := oss.New(ossEndpoint, ossKey, ossSecret)
 	if err != nil {
@@ -103,16 +56,13 @@ func initBucket() (*oss.Bucket, error) {
 	return bucket, nil
 }
 
-func uploadToOSS(r io.Reader) (string, error) {
-	objectKey := fmt.Sprintf("%s/%s.jpg", ossFolder, RandID(nameLength))
-	err := bucket.PutObject(objectKey, r)
-	if err != nil {
-		return "", err
-	}
-	return objectKey, nil
+func exit(msg string) {
+	flag.Usage()
+	fmt.Fprintln(os.Stderr, "\n[Error] "+msg)
+	os.Exit(1)
 }
 
-func sinaImgToOSS(url string) (string, error) {
+func sinaImgToCloud(url string) (string, error) {
 	resp, err := http.Get(url)
 	if err != nil {
 		return "", err
@@ -121,10 +71,13 @@ func sinaImgToOSS(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	key, err := uploadToOSS(bytes.NewReader(body))
+
+	objectKey := fmt.Sprintf("%s/%s.jpg", ossFolder, utils.RandID(nameLength))
+	key, err := uploader.Upload(objectKey, bytes.NewReader(body))
 	if err != nil {
 		return "", err
 	}
+
 	return fmt.Sprintf("https://%s.%s/%s", ossBucket, ossEndpoint, key), nil
 }
 
@@ -142,11 +95,11 @@ func parseFile(filePath string, wg *sync.WaitGroup) error {
 	for _, param := range params {
 		imgURL := param[1]
 		if strings.Index(imgURL, sinaImg) != -1 {
-			ossURL, err := sinaImgToOSS(imgURL)
+			cloudURL, err := sinaImgToCloud(imgURL)
 			if err != nil {
 				fmt.Printf("图片：%s 转换到 OSS 出错了\n", err.Error())
 			} else {
-				newContent := strings.Replace(content, imgURL, ossURL, -1)
+				newContent := strings.Replace(content, imgURL, cloudURL, -1)
 				//重新写入
 				ioutil.WriteFile(filePath, []byte(newContent), 0)
 				content = newContent
@@ -172,11 +125,14 @@ func main() {
 	if ossSecret == "" {
 		exit("没有指定 secret 参数")
 	}
-	files, err := GetAllFiles(postPath)
+	files, err := utils.GetAllFiles(postPath)
 	if err != nil {
 		fmt.Printf("获取markdown文件出错了: %s\n", err.Error())
 	} else {
 		bucket, err = initBucket()
+		// todo，根据参数传入决定使用哪个uploader
+		uploader = aliyun.NewAliOSS(bucket)
+
 		if err != nil {
 			fmt.Printf("初始化OSS客户端出错了: %s\n", err.Error())
 		} else {
