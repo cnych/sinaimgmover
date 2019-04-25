@@ -3,10 +3,40 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "PUaun5Oep15YJJxKqfoXyYlAK9Y=",
+			"path": "github.com/aliyun/aliyun-oss-go-sdk",
+			"revision": "08079eb9f6aaa13ee00b8fade6ceeffa138bf877",
+			"revisionTime": "2019-04-16T14:42:36Z"
+		},
+		{
 			"checksumSHA1": "c+tkvvfApn5fJLUSY90Q7p6ykXE=",
 			"path": "github.com/aliyun/aliyun-oss-go-sdk/oss",
 			"revision": "08079eb9f6aaa13ee00b8fade6ceeffa138bf877",
 			"revisionTime": "2019-04-16T14:42:36Z"
+		},
+		{
+			"checksumSHA1": "xN8kYL5GiauSLKNubiR45ANqIk0=",
+			"path": "github.com/aliyun/aliyun-oss-go-sdk/sample",
+			"revision": "08079eb9f6aaa13ee00b8fade6ceeffa138bf877",
+			"revisionTime": "2019-04-16T14:42:36Z"
+		},
+		{
+			"checksumSHA1": "40vJyUB4ezQSn/NSadsKEOrudMc=",
+			"path": "github.com/inconshreveable/mousetrap",
+			"revision": "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75",
+			"revisionTime": "2014-10-17T20:07:13Z"
+		},
+		{
+			"checksumSHA1": "8fDK53Czr6IWx6KyeYfCptNeCjE=",
+			"path": "github.com/spf13/cobra",
+			"revision": "67fc4837d267bc9bfd6e47f77783fcc3dffc68de",
+			"revisionTime": "2019-03-21T00:05:52Z"
+		},
+		{
+			"checksumSHA1": "VK+UsykzUMkaKl2ankiyutolraE=",
+			"path": "github.com/spf13/pflag",
+			"revision": "24fa6976df40757dce6aea913e7b81ade90530e1",
+			"revisionTime": "2018-12-23T18:29:23Z"
 		},
 		{
 			"checksumSHA1": "7Ev/X4Xe8P3961myez/hBKO05ig=",
@@ -15,5 +45,5 @@
 			"revisionTime": "2019-02-15T22:48:40Z"
 		}
 	],
-	"rootPath": "sinaimgmover"
+	"rootPath": "github.com/cnych/sinaimgmover"
 }

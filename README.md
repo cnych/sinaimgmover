@@ -11,30 +11,35 @@
 于是花了一点点时间写了个小程序来一键将微博图床里面的图片一键迁移到阿里云`OSS`上面。这个程序使用起来很简单，提供几个阿里云`OSS`的一些参数即可，比如 bucket、accessKey、accessSecret：
 
 ```shell
-$ ./sinaimgmover -h
-Usage of ./sinaimgmover:
-  -bucket string
-        指定Aliyun  OSS Bucket
-  -endpoint string
-        OSS Endpoint（不包含http(s)），如：oss-cn-hangzhou.aliyuncs.com (default "oss-cn-beijing.aliyuncs.com")
-  -folder string
-        Bucket下面的文件夹目录，默认为 images (default "images")
-  -key string
-        Aliyun OSS Key
-  -length int
-        指定上传到OSS上面的图片名称长度，默认为6 (default 6)
-  -post string
-        指定markdown文章路径，默认当前目录 (default "./")
-  -secret string
-        Aliyun OSS Secret
+$ mover -h
+基于 Golang 开发的一个用于将微博图床一键迁移到云服务的工具
+      目前只支持阿里云 OSS，文档查看：https://github.com/cnych/sinaimgmover
+
+Usage:
+  mover [flags]
+  mover [command]
+
+Available Commands:
+  help        Help about any command
+  oss         迁移到阿里云 OSS
+
+Flags:
+  -h, --help            help for mover
+  -l, --length int      指定上传到OSS上面的图片名称长度，默认值：6 (default 6)
+  -p, --post string     指定markdown文章路径，默认值：当前目录 (default "./")
+  -f, --prefix string   Bucket下面的文件夹目录，默认值： images (default "images")
+
+Use "mover [command] --help" for more information about a command.
 ```
 
 示例：
 ```
-$ ./sinaimgmover -bucket=bxdc-static -key=xxxx -secret=xxxx -post=/Users/ych/devs/workspace/www.qikqiak.com/content/page
+$ mover oss --bucket=bxdc-static --key=xxxx --secret=xxxx --post=/Users/ych/devs/workspace/www.qikqiak.com/content/page
 成功替换了图片：https://ws3.sinaimg.cn/large/006tKfTcgy1g1o2gcoqs2j30u021fe81.jpg
 成功替换了图片：https://ws3.sinaimg.cn/large/006tKfTcgy1g1o2gcoqs2j30u0212233.jpg
 ......
 ```
 
 心情舒畅多了~~~
+
+> 可以根据自己需要扩展迁移至其他云服务......
