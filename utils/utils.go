@@ -20,36 +20,31 @@ func RandID(n int) string {
 	return string(b)
 }
 
-// GetAllFiles ... 获取指定目录下的所有文件,包含子目录下的文件
-func GetAllFiles(dirPth string) (files []string, err error) {
-	var dirs []string
-	dir, err := ioutil.ReadDir(dirPth)
+// GetAllFiles ... 根据文件路径获取是所有的 markdown 文件
+func GetAllFiles(dir string) ([]string, error) {
+	dirPath, err := ioutil.ReadDir(dir)
 	if err != nil {
 		return nil, err
 	}
 
-	PthSep := string(os.PathSeparator)
+	var files []string
 
-	for _, fi := range dir {
-		if fi.IsDir() { // 目录, 递归遍历
-			dirs = append(dirs, dirPth+PthSep+fi.Name())
-			GetAllFiles(dirPth + PthSep + fi.Name())
+	sep := string(os.PathSeparator)
+
+	for _, fi := range dirPath {
+		if fi.IsDir() { // 如果还是一个目录，则递归去遍历
+			subFiles, err := GetAllFiles(dir + sep + fi.Name())
+			if err != nil {
+				return nil, err
+			}
+			files = append(files, subFiles...)
 		} else {
-			// 过滤指定格式
+			// 过滤指定格式的文件
 			ok := strings.HasSuffix(fi.Name(), ".md")
 			if ok {
-				files = append(files, dirPth+PthSep+fi.Name())
+				files = append(files, dir + sep + fi.Name())
 			}
 		}
 	}
-
-	// 读取子目录下文件
-	for _, table := range dirs {
-		temp, _ := GetAllFiles(table)
-		for _, temp1 := range temp {
-			files = append(files, temp1)
-		}
-	}
-
 	return files, nil
 }
